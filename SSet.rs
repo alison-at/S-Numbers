@@ -1,6 +1,8 @@
 //use std::fmt;
 //use std::num::Float;
 //UNCOMPLETE
+use std::sync::mpsc;
+use std::thread;
 
 #[derive(Debug)]
 struct OffsetInfo {
@@ -15,11 +17,12 @@ have vector of all s factors
 updte this based on input from thread messages
 */
 fn main() {
+
     let mut sperfects: Vec<u32> = Vec::new();   
     let mut all_sfacts: Vec<u32> = vec![1, 2];
     let mut all_offsets: Vec<OffsetInfo> = Vec::new();
-    
-    let max = 100;
+    //let mut threadCount: u32 = 0;
+    let max = 500;
     all_sfacts.push(1);
     all_sfacts.push(2);
 
@@ -47,6 +50,8 @@ fn main() {
             //OFFSET: offset = sum - n
         }
     }
+
+    //let mut currentMaxVal := 120
     
     //Test1 : test find_factors method
     /*let factors = find_factors(12);
@@ -55,13 +60,27 @@ fn main() {
     //Test2: tests the initial populating of s_factors
     /*println!("{:?}\n{:?}\n", sperfects, all_sfacts);*/
 
-    let mut newOffsets: Vec<OffsetInfo> = Vec::new();
+     //test3: check get_s_through
+    /*let mut newOffsets: Vec<OffsetInfo> = Vec::new();
     let mut newSPerfects: Vec<u32> = Vec::new();
     (sperfects, all_sfacts, newOffsets) = get_s_through(121, 200, &all_sfacts, &sperfects);
     all_offsets.append(&mut newOffsets);
+    println!("{:?}\n{:?}\n{:?}", sperfects, all_sfacts, all_offsets);*/
+
     
-    //test3: check get_s_through
-    //println!("{:?}\n{:?}\n{:?}", sperfects, all_sfacts, all_offsets);
+
+    let (tx, rx) = mpsc::channel();
+
+
+    //while currentMaxVal < max && 
+    thread::spawn(move || {
+        tx.send(get_s_through(121, 200, &all_sfacts, &sperfects))
+    });
+
+    let mut newOffsets: Vec<OffsetInfo> = Vec::new();
+    (sperfects, all_sfacts, newOffsets) = rx.recv().unwrap();
+    all_offsets.append(&mut newOffsets);
+    println!("{:?}\n{:?}\n{:?}",sperfects, all_sfacts,all_offsets)
 }
 
 fn printFormat() {
