@@ -17,12 +17,13 @@ updte this based on input from thread messages
 fn main() {
     let mut sperfects: Vec<u32> = Vec::new();   
     let mut all_sfacts: Vec<u32> = vec![1, 2];
-    let mut Offset_vec_of_vecs: Vec<Vec<OffsetInfo>> = vec![];
+    let mut all_offsets: Vec<OffsetInfo> = Vec::new();
+    
     let max = 100;
     all_sfacts.push(1);
     all_sfacts.push(2);
 
-    for n in 3..120 {
+    for n in 3..121 {
         //let mut sfacts_of_n: Vec<u32> = vec![]; //create specialized vector
         let factors = find_factors(n);
         let mut sSum: u32 = 0;
@@ -40,29 +41,35 @@ fn main() {
             all_sfacts.push(n);
         }
     }
-
+    
     //Test1 : test find_factors method
     /*let factors = find_factors(12);
     println!("{:?}",factors)*/
 
     //Test2: tests the initial populating of s_factors
-    /*println!("{:?}\n{:?}\n", sperfects, all_sfacts)*/
+    println!("{:?}\n{:?}\n", sperfects, all_sfacts);
+
+    let mut newOffsets: Vec<OffsetInfo> = Vec::new();
+    let mut newSPerfects: Vec<u32> = Vec::new();
+    (sperfects, all_sfacts, newOffsets) = get_s_through(121, 200, &all_sfacts, &sperfects);
+    
+    //test3: check get_s_through does not work
+    println!("{:?}\n{:?}\n", sperfects, all_sfacts);
 }
 
-fn printFormat(Offset_vec_of_vecs: Vec<Vec<OffsetInfo>>) {
-    let mut Offset_vec_of_vecs = Offset_vec_of_vecs;
+fn printFormat() {
+    //let mut Offset_vec_of_vecs = Offset_vec_of_vecs;
+    let mut Offset_vec_of_vecs: Vec<Vec<OffsetInfo>> = vec![];
 }
 
 
-//Job of get_s_through: return tuple off offset (iteration?)
-fn get_s_through(min: u32, max:u32, all_sfacts: &Vec<u32>, sperfects: &Vec<u32>)-> (Vec<u32>, Vec<OffsetInfo>) { //return tuple
-
+//Job of get_s_through: return tuple off offset (iteration?) 
+fn get_s_through(min: u32, max:u32, all_sfacts: &Vec<u32>, sperfects: &Vec<u32>) -> (Vec<u32>, Vec<u32>, Vec<OffsetInfo>){ //return tuple
+    let mut sperfects: Vec<u32> = sperfects.to_vec();
+    let mut all_sfacts: Vec<u32> = all_sfacts.to_vec();
     //println!("{offs}");
     //local variables for local use... corresponding to the vars in main
-
-
     //will be populated once offset vec is done populating
-
     let mut offset_vec: Vec<OffsetInfo> = Vec::new(); //vec of OffsetInfo
 
     for n in min..max {
@@ -71,9 +78,9 @@ fn get_s_through(min: u32, max:u32, all_sfacts: &Vec<u32>, sperfects: &Vec<u32>)
         let factors = find_factors(n); //factors of n
 
         for fact in factors.iter() { //goes through factors of n
-            let val: u32 = factors[*fact as usize];
-            if all_sfacts.contains(&val) { //borrow
-                sSum += val; //don't understand why star here...
+            //let val: u32 = factors[*fact as usi];
+            if all_sfacts.contains(&fact) { //borrow
+                sSum += fact; //don't understand why star here...
             }
         }
 
@@ -84,55 +91,25 @@ fn get_s_through(min: u32, max:u32, all_sfacts: &Vec<u32>, sperfects: &Vec<u32>)
 
         //okay... offset different...
         if sSum == n  {
+            println!("{}",n);
             sperfects.push(n);
             all_sfacts.push(n);
-        }
-
-        if sSum < n {
-            all_sfacts.push(n);
-        }
-
-        //for offset
-
-        if i32::abs((sSum - n) as i32) <= 7 { //OFFSET -
-            let o = OffsetInfo{offset: (sSum - n) as i32, num: n};
-
-            //println!("{:?}", o); //must print first...
-
-            offset_vec.push(o);
-
-            //OFFSET: offset = sum - n
+            println!("{:?}\n{:?}\n", sperfects, all_sfacts);
         }
 
         if sSum  < n  {  //this and above are if is Negative...
-
             all_sfacts.push(n);
         }
-
     }
 
     println!("{:#?}", offset_vec);
     //so now I want to go through and organize the items of struct
 
-    for item in offset_vec {
-
-        //append num to vec corresponding to offset
-
-        //vec[0]
-
-        //offset 
-
-        //recieving vec: vec_of_vecs[item.offset]
-
-        //being pushed: item.num
-
-        //vec_of_vecs[item.offset].push(item.num);
-
-        //push onto vec corresponding with offset
+    for item in &offset_vec {
 
     } //this should populate vec_of_vecs
-
-    return (sperfects.to_vec(), offset_vec); //tuple, just to see/ test
+    
+    return (sperfects, all_sfacts,  offset_vec); //tuple, just to see/ test
 
 }
  
