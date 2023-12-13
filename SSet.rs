@@ -19,10 +19,8 @@ fn main() {
     let mut all_sfacts: Vec<u32> = vec![1, 2];
     let mut Offset_vec_of_vecs: Vec<Vec<OffsetInfo>> = vec![];
     let max = 100;
-
     all_sfacts.push(1);
     all_sfacts.push(2);
-
 
     for n in 3..120 {
         //let mut sfacts_of_n: Vec<u32> = vec![]; //create specialized vector
@@ -41,7 +39,6 @@ fn main() {
         else if sSum < n {
             all_sfacts.push(n);
         }
-        
     }
 
     //Test1 : test find_factors method
@@ -56,9 +53,9 @@ fn printFormat(Offset_vec_of_vecs: Vec<Vec<OffsetInfo>>) {
     let mut Offset_vec_of_vecs = Offset_vec_of_vecs;
 }
 
-/*
+
 //Job of get_s_through: return tuple off offset (iteration?)
-fn get_s_through(min: u32, max:u32)-> (Vec<u32>, Vec<OffsetInfo>) { //return tuple
+fn get_s_through(min: u32, max:u32, all_sfacts: &Vec<u32>, sperfects: &Vec<u32>)-> (Vec<u32>, Vec<OffsetInfo>) { //return tuple
 
     //println!("{offs}");
     //local variables for local use... corresponding to the vars in main
@@ -68,38 +65,37 @@ fn get_s_through(min: u32, max:u32)-> (Vec<u32>, Vec<OffsetInfo>) { //return tup
 
     let mut offset_vec: Vec<OffsetInfo> = Vec::new(); //vec of OffsetInfo
 
-
     for n in min..max {
-        let mut sfacts_of_n: Vec<u32> = vec![]; //create specialized vector
+        //let mut sfacts_of_n: Vec<u32> = vec![]; //create specialized vector
+        let mut sSum: u32 = 0;
         let factors = find_factors(n); //factors of n
 
-        for fact in facts.iter() { //goes through factors of n
-
-            if all_sfacts.contains(&fact) { //borrow
-                sfacts_of_n.push(*fact); //don't understand why star here...
-            } //else...
+        for fact in factors.iter() { //goes through factors of n
+            let val: u32 = factors[*fact as usize];
+            if all_sfacts.contains(&val) { //borrow
+                sSum += val; //don't understand why star here...
+            }
         }
 
-        let mut sum: i32 = 0;
-
-        for sfact in sfacts_of_n {
-
+        //let mut sum: i32 = 0;
+        /*for sfact in sfacts_of_n {
             sum += sfact as i32;
-
-        } //find sum of sfacts_of_n
+        } //find sum of sfacts_of_n*/
 
         //okay... offset different...
-        if sum - n as i32 == 0  {
-
+        if sSum == n  {
             sperfects.push(n);
+            all_sfacts.push(n);
+        }
 
+        if sSum < n {
             all_sfacts.push(n);
         }
 
         //for offset
 
-        if (sum - n as i32 <=7) && (sum - n as i32 >= -7) { //OFFSET -
-            let o = OffsetInfo{offset: sum - n as i32, num: n};
+        if i32::abs((sSum - n) as i32) <= 7 { //OFFSET -
+            let o = OffsetInfo{offset: (sSum - n) as i32, num: n};
 
             //println!("{:?}", o); //must print first...
 
@@ -108,7 +104,7 @@ fn get_s_through(min: u32, max:u32)-> (Vec<u32>, Vec<OffsetInfo>) { //return tup
             //OFFSET: offset = sum - n
         }
 
-        if sum < n as i32 {  //this and above are if is Negative...
+        if sSum  < n  {  //this and above are if is Negative...
 
             all_sfacts.push(n);
         }
@@ -130,15 +126,15 @@ fn get_s_through(min: u32, max:u32)-> (Vec<u32>, Vec<OffsetInfo>) { //return tup
 
         //being pushed: item.num
 
-        vec_of_vecs[item.offset].push(item.num);
+        //vec_of_vecs[item.offset].push(item.num);
 
         //push onto vec corresponding with offset
 
     } //this should populate vec_of_vecs
 
-    return (sperfects, offset_vec); //tuple, just to see/ test
+    return (sperfects.to_vec(), offset_vec); //tuple, just to see/ test
 
-}*/
+}
  
 //finds factors: ((x as f64).sqrt() as u32 to square root
 fn find_factors(x: u32)-> Vec<u32> { //helper func... not called by main
