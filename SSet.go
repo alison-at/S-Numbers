@@ -84,6 +84,8 @@ func updateSPerfect(newS []int, newSPerfect []int, iteratNum int, newOff []Offse
 	allOffset = append(allOffset, newOff...)
 	iterating += iteratNum
 	counter--
+	//fmt.Println("Sperfect", SPerfect,"num S factors", len(sFactors))
+	//fmt.Println(sFactors)
 }
 //change what you append to!!
 func iteration(sFactors []int, start int, end int, max int, wg *sync.WaitGroup)  {
@@ -124,17 +126,16 @@ func iteration(sFactors []int, start int, end int, max int, wg *sync.WaitGroup) 
 }
 
 func main() {
-	//very weird: will only sometimes include 114688
-	//also start and end and i do not go to max
+	//threads dont go consecutively
 	iterating = 2;
 	counter = 0;
-	sFactors = append(sFactors, 1, 2)
+	sFactors = append(sFactors, 1)
 	sFactors = append(sFactors, 2)
 	var wg sync.WaitGroup
-	max := 1500000
+	max := 1600000
 
-	//generate Sfactors and Sperfect up to 12000
-	for i := 3; i <= 12000 && i <= max; i++ {
+	//generate Sfactors and Sperfect up to 12000 (changed to 20000)
+	for i := 3; i <= 20000 && i <= max; i++ {
 		var currentFa = factoring(i)
 		currentSum :=0
 		for j := range currentFa{
@@ -158,14 +159,9 @@ func main() {
 		iterating++
 	}
 
-	if iterating == max {
-		iterating ++
-	}
-
 	currentBar = iterating + 2
+	//fmt.Println("current iteration", currentBar)
 	
-	//start building by increments of 120
-	//use waitloop
 	for currentBar < max{
 		time.Sleep(1*time.Millisecond)//catch up on counting
 		
@@ -173,14 +169,15 @@ func main() {
 			wg.Add(1)
 			counter++
 			
-			if currentBar+2000 > max {
+			if currentBar+3000 > max {
+				go iteration(sFactors, currentBar, max, max, &wg)
 				currentBar += (max - currentBar)
-				go iteration(sFactors, currentBar-1999, max, max, &wg)
+				fmt.Println(counter, "counter", currentBar, "maxVal")
 				wg.Wait()
 				break;
 			} else {
-				currentBar +=2000
-				go iteration(sFactors, currentBar-1999, currentBar, max, &wg)
+				currentBar +=3000
+				go iteration(sFactors, currentBar-2999, currentBar, max, &wg)
 			}
 			fmt.Println(counter, "counter", currentBar, "maxVal")
 		}
