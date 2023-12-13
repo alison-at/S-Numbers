@@ -40,6 +40,12 @@ fn main() {
         else if sSum < n {
             all_sfacts.push(n);
         }
+
+        if ((sSum as i32) - (n as i32) <=7) && ((sSum as i32) - (n as i32)  >= -7 ) { //OFFSET
+            let o = OffsetInfo{offset: (sSum as i32) - (n as i32), num: n};
+            all_offsets.push(o);
+            //OFFSET: offset = sum - n
+        }
     }
     
     //Test1 : test find_factors method
@@ -47,14 +53,15 @@ fn main() {
     println!("{:?}",factors)*/
 
     //Test2: tests the initial populating of s_factors
-    println!("{:?}\n{:?}\n", sperfects, all_sfacts);
+    /*println!("{:?}\n{:?}\n", sperfects, all_sfacts);*/
 
     let mut newOffsets: Vec<OffsetInfo> = Vec::new();
     let mut newSPerfects: Vec<u32> = Vec::new();
     (sperfects, all_sfacts, newOffsets) = get_s_through(121, 200, &all_sfacts, &sperfects);
+    all_offsets.append(&mut newOffsets);
     
-    //test3: check get_s_through does not work
-    println!("{:?}\n{:?}\n", sperfects, all_sfacts);
+    //test3: check get_s_through
+    //println!("{:?}\n{:?}\n{:?}", sperfects, all_sfacts, all_offsets);
 }
 
 fn printFormat() {
@@ -83,6 +90,11 @@ fn get_s_through(min: u32, max:u32, all_sfacts: &Vec<u32>, sperfects: &Vec<u32>)
                 sSum += fact; //don't understand why star here...
             }
         }
+        if ((sSum as i32) - (n as i32) <=7) && ((sSum as i32) - (n as i32)  >= -7 ) { //OFFSET
+            let o = OffsetInfo{offset: (sSum as i32) - (n as i32), num: n};
+            offset_vec.push(o);
+            //OFFSET: offset = sum - n
+        }
 
         //let mut sum: i32 = 0;
         /*for sfact in sfacts_of_n {
@@ -91,10 +103,10 @@ fn get_s_through(min: u32, max:u32, all_sfacts: &Vec<u32>, sperfects: &Vec<u32>)
 
         //okay... offset different...
         if sSum == n  {
-            println!("{}",n);
+            //println!("{}",n);
             sperfects.push(n);
             all_sfacts.push(n);
-            println!("{:?}\n{:?}\n", sperfects, all_sfacts);
+            //println!("{:?}\n{:?}\n", sperfects, all_sfacts);
         }
 
         if sSum  < n  {  //this and above are if is Negative...
@@ -102,7 +114,7 @@ fn get_s_through(min: u32, max:u32, all_sfacts: &Vec<u32>, sperfects: &Vec<u32>)
         }
     }
 
-    println!("{:#?}", offset_vec);
+    //println!("{:#?}", offset_vec);
     //so now I want to go through and organize the items of struct
 
     for item in &offset_vec {
