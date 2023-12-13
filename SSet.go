@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 	"math"
+	"os"
+	"strconv"
 )
 
 type OffsetInfo struct {
@@ -87,7 +89,7 @@ func updateSPerfect(newS []int, newSPerfect []int, iteratNum int, newOff []Offse
 	//fmt.Println("Sperfect", SPerfect,"num S factors", len(sFactors))
 	//fmt.Println(sFactors)
 }
-//change what you append to!!
+
 func iteration(sFactors []int, start int, end int, max int, wg *sync.WaitGroup)  {
 	defer wg.Done()
 
@@ -126,23 +128,25 @@ func iteration(sFactors []int, start int, end int, max int, wg *sync.WaitGroup) 
 }
 
 func main() {
-	//threads dont go consecutively
 	iterating = 2;
 	counter = 0;
 	sFactors = append(sFactors, 1)
 	sFactors = append(sFactors, 2)
 	var wg sync.WaitGroup
-	max := 1600000
+	args := os.Args
+	max,_ := strconv.Atoi(args[1])
 
 	//generate Sfactors and Sperfect up to 12000 (changed to 20000)
 	for i := 3; i <= 20000 && i <= max; i++ {
 		var currentFa = factoring(i)
 		currentSum :=0
+
 		for j := range currentFa{
 			if contains(sFactors, currentFa[j]) {
 				currentSum += currentFa[j]
 			}
 		}
+
 		if 	currentSum <= i {
 			sFactors = append(sFactors, i)
 		}
@@ -155,12 +159,10 @@ func main() {
 		if currentSum == i {
 			SPerfect = append(SPerfect, i)
 		}
-
 		iterating++
 	}
 
 	currentBar = iterating + 2
-	//fmt.Println("current iteration", currentBar)
 	
 	for currentBar < max{
 		time.Sleep(1*time.Millisecond)//catch up on counting
@@ -172,29 +174,18 @@ func main() {
 			if currentBar+3000 > max {
 				go iteration(sFactors, currentBar, max, max, &wg)
 				currentBar += (max - currentBar)
-				fmt.Println(counter, "counter", currentBar, "maxVal")
+				//fmt.Println(counter, "counter", currentBar, "maxVal")
 				wg.Wait()
 				break;
 			} else {
 				currentBar +=3000
 				go iteration(sFactors, currentBar-2999, currentBar, max, &wg)
 			}
-			fmt.Println(counter, "counter", currentBar, "maxVal")
+			//fmt.Println(counter, "counter", currentBar, "maxVal")
 		}
 	}
+
 	wg.Wait()
-	//fmt.Println(sFactors)
 	fmt.Println(SPerfect)
 	printFormat()
 }
-
-/* hard code 0 to 120,000 with main thread
-	I could get end to == max if it is more than max and then get rid of iterator
-	
-	//lock and unlock sset when sset is changed, not for reading. Keep copy with thread, 
-	//disapears with thread. should n be in s? reads sset copy, use function to put local into global
-	wg.Add(1)
-		counter++
-		go iteration(sFactors, currentBar+1, currentBar+120, max, &wg)
-		currentBar += 120
-*/
