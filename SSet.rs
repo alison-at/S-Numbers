@@ -1,8 +1,9 @@
 //use std::fmt;
 //use std::num::Float;
-//UNCOMPLETE
+//so inefficient it is a crime
 use std::sync::mpsc;
 use std::thread;
+use std::time::Duration;
 
 #[derive(Debug)]
 struct OffsetInfo {
@@ -17,16 +18,15 @@ have vector of all s factors
 updte this based on input from thread messages
 */
 fn main() {
-
     let mut sperfects: Vec<u32> = Vec::new();   
     let mut all_sfacts: Vec<u32> = vec![1, 2];
     let mut all_offsets: Vec<OffsetInfo> = Vec::new();
-    //let mut threadCount: u32 = 0;
-    let max = 500;
+    let mut threadCount: u32 = 0;
+    let max = 15000;
     all_sfacts.push(1);
     all_sfacts.push(2);
 
-    for n in 3..121 {
+    for n in 3..12000 {
         //let mut sfacts_of_n: Vec<u32> = vec![]; //create specialized vector
         let factors = find_factors(n);
         let mut sSum: u32 = 0;
@@ -51,9 +51,61 @@ fn main() {
         }
     }
 
-    //let mut currentMaxVal := 120
-    
-    //Test1 : test find_factors method
+    let mut currentMaxVal: u32 = 12000;
+
+    let (tx, rx) = mpsc::channel();
+
+    while currentMaxVal < max {
+        thread::sleep(Duration::from_millis(1));
+        while threadCount < 8 && currentMaxVal < max {
+            println!("threadcount {}", threadCount);
+            if currentMaxVal+2000 > max {
+                let tx1 = tx.clone();
+                threadCount +=1;
+                let point_all_sfacts = all_sfacts.clone();
+                let point_sperfects = sperfects.clone();
+            
+                thread::spawn(move || {
+                    tx1.send(get_s_through(currentMaxVal, max, &point_all_sfacts, &point_sperfects));
+                    
+                });
+                thread::sleep(Duration::from_millis(1));
+                currentMaxVal += ((max as i32) - (currentMaxVal as i32)).abs() as u32;
+                println!("max {}", currentMaxVal);
+                break;
+            } else {
+                let tx1 = tx.clone();
+                threadCount +=1;
+                let point_all_sfacts = all_sfacts.clone();
+                let point_sperfects = sperfects.clone();
+                
+                thread::spawn(move || {
+                    tx1.send(get_s_through(currentMaxVal, currentMaxVal+2000, &point_all_sfacts, &point_sperfects));
+                });
+                currentMaxVal+=2000;
+            }
+        }
+    }
+
+    for recived in rx {
+        let mut newOffsets: Vec<OffsetInfo> = Vec::new();
+        let mut newSPerfects: Vec<u32> = Vec::new();
+        let mut newSFacts: Vec<u32> = Vec::new();
+        (newSPerfects, newSFacts, newOffsets) = recived;
+        all_offsets.append(&mut newOffsets);
+        all_sfacts.append(&mut newSFacts);
+        sperfects.append(&mut newSPerfects);
+        threadCount -= 1;
+        println!("threadcount{}", threadCount);
+
+        if threadCount == 0 {
+            break;
+        }
+    }
+
+    println!("{:?}\n{:?}\n\n{:?}",  all_sfacts, all_offsets, sperfects);
+
+        //Test1 : test find_factors method
     /*let factors = find_factors(12);
     println!("{:?}",factors)*/
 
@@ -66,22 +118,8 @@ fn main() {
     (sperfects, all_sfacts, newOffsets) = get_s_through(121, 200, &all_sfacts, &sperfects);
     all_offsets.append(&mut newOffsets);
     println!("{:?}\n{:?}\n{:?}", sperfects, all_sfacts, all_offsets);*/
-
-    
-
-    let (tx, rx) = mpsc::channel();
-
-
-    //while currentMaxVal < max && 
-    thread::spawn(move || {
-        tx.send(get_s_through(121, 200, &all_sfacts, &sperfects))
-    });
-
-    let mut newOffsets: Vec<OffsetInfo> = Vec::new();
-    (sperfects, all_sfacts, newOffsets) = rx.recv().unwrap();
-    all_offsets.append(&mut newOffsets);
-    println!("{:?}\n{:?}\n{:?}",sperfects, all_sfacts,all_offsets)
 }
+
 
 fn printFormat() {
     //let mut Offset_vec_of_vecs = Offset_vec_of_vecs;
@@ -93,12 +131,15 @@ fn printFormat() {
 fn get_s_through(min: u32, max:u32, all_sfacts: &Vec<u32>, sperfects: &Vec<u32>) -> (Vec<u32>, Vec<u32>, Vec<OffsetInfo>){ //return tuple
     let mut sperfects: Vec<u32> = sperfects.to_vec();
     let mut all_sfacts: Vec<u32> = all_sfacts.to_vec();
+
+    let mut newSPerfects: Vec<u32> = Vec::new();
+    let mut newSFacts: Vec<u32> = Vec::new();
     //println!("{offs}");
     //local variables for local use... corresponding to the vars in main
     //will be populated once offset vec is done populating
     let mut offset_vec: Vec<OffsetInfo> = Vec::new(); //vec of OffsetInfo
 
-    for n in min..max {
+    for n in min..max+1 {
         //let mut sfacts_of_n: Vec<u32> = vec![]; //create specialized vector
         let mut sSum: u32 = 0;
         let factors = find_factors(n); //factors of n
@@ -123,13 +164,13 @@ fn get_s_through(min: u32, max:u32, all_sfacts: &Vec<u32>, sperfects: &Vec<u32>)
         //okay... offset different...
         if sSum == n  {
             //println!("{}",n);
-            sperfects.push(n);
-            all_sfacts.push(n);
+            newSPerfects.push(n);
+            newSFacts.push(n);
             //println!("{:?}\n{:?}\n", sperfects, all_sfacts);
         }
 
         if sSum  < n  {  //this and above are if is Negative...
-            all_sfacts.push(n);
+            newSFacts.push(n);
         }
     }
 
@@ -140,7 +181,7 @@ fn get_s_through(min: u32, max:u32, all_sfacts: &Vec<u32>, sperfects: &Vec<u32>)
 
     } //this should populate vec_of_vecs
     
-    return (sperfects, all_sfacts,  offset_vec); //tuple, just to see/ test
+    return (newSPerfects, newSFacts,  offset_vec); //tuple, just to see/ test
 
 }
  
