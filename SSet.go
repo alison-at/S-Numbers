@@ -135,9 +135,10 @@ func main() {
 	var wg sync.WaitGroup
 	args := os.Args
 	max,_ := strconv.Atoi(args[1])
+	fmt.Println(max)
 
 	//generate Sfactors and Sperfect up to 12000 (changed to 20000)
-	for i := 3; i <= 20000 && i <= max; i++ {
+	for i := 3; i <= 25000 && i <= max; i++ {
 		var currentFa = factoring(i)
 		currentSum :=0
 
@@ -162,7 +163,8 @@ func main() {
 		iterating++
 	}
 
-	currentBar = iterating + 2
+	currentBar = iterating + 2;
+	checkpoint := 1;
 	
 	for currentBar < max{
 		time.Sleep(1*time.Millisecond)//catch up on counting
@@ -171,17 +173,23 @@ func main() {
 			wg.Add(1)
 			counter++
 			
-			if currentBar+3000 > max {
+			if currentBar+5000 > max {
 				go iteration(sFactors, currentBar, max, max, &wg)
 				currentBar += (max - currentBar)
 				//fmt.Println(counter, "counter", currentBar, "maxVal")
 				wg.Wait()
 				break;
 			} else {
-				currentBar +=3000
-				go iteration(sFactors, currentBar-2999, currentBar, max, &wg)
+				currentBar +=5000
+				go iteration(sFactors, currentBar-4999, currentBar, max, &wg)
 			}
 			//fmt.Println(counter, "counter", currentBar, "maxVal")
+		}
+
+		if (currentBar > 1000000*checkpoint) {
+			checkpoint++;
+			fmt.Println("current index", currentBar);
+			printFormat()
 		}
 	}
 
