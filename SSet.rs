@@ -6,7 +6,7 @@
 use std::env;
 use std::sync::mpsc;
 use std::thread;
-use std::time::Duration;
+//use std::time::Duration;
 
 #[derive(Debug)]
 struct OffsetInfo {
@@ -14,15 +14,7 @@ struct OffsetInfo {
     num: u32,
 } //offset info struct
 
-/*Job of main: 
-have vector of sperfect 
-have vector of offset vectors
-have vector of all s factors
-updte this based on input from thread messages
-*/
 fn main() {
-    /*the issue: second while loop is only exited when current val is over max, that is when messages would go to rx
-    */
     let mut sperfects: Vec<u32> = Vec::new();   
     let mut all_sfacts: Vec<u32> = vec![1, 2];
     let mut all_offsets: Vec<OffsetInfo> = Vec::new();
@@ -58,16 +50,12 @@ fn main() {
 
     let mut currentMaxVal: u32 = 20000;
     let (tx, rx) = mpsc::channel();
-    
-    while currentMaxVal < max {
-        thread::sleep(Duration::from_millis(10));
-        while threadCount < 8 && currentMaxVal < max {
-            println!("threadcount {}", threadCount);
+
+    for thread in 1..9 {
+        if currentMaxVal < max {
             let tx1 = tx.clone();
-            threadCount +=1;
             let point_all_sfacts = all_sfacts.clone();
             let point_sperfects = sperfects.clone();
-
             if currentMaxVal+3000 >= max {
                 let former = currentMaxVal;
                 currentMaxVal = max;
@@ -81,35 +69,12 @@ fn main() {
                 (thread::spawn(move || {
                     tx1.send(get_s_through(currentMaxVal-2999, currentMaxVal, &point_all_sfacts, &point_sperfects));
                 }));   
-            }   
-        }
-
-        for recived in &rx {
-            threadCount -= 1;
-            println!("threadcount!!{}", threadCount);
-            let mut new_offsets: Vec<OffsetInfo> = Vec::new();
-            let mut new_s_perfects: Vec<u32> = Vec::new();
-            let mut new_s_facts: Vec<u32> = Vec::new();
-            (new_s_perfects, new_s_facts, new_offsets) = recived;
-            all_offsets.append(&mut new_offsets);
-            all_sfacts.append(&mut new_s_facts);
-            sperfects.append(&mut new_s_perfects);
-            
-            if threadCount == 0 {
-                break;
             }
         }
-
-
-        /*if currentMaxVal >= max {
-            println!("finally");
-            break;
-        }*/
     }
-    /*
+    //println!("Escape");
+
     for recived in rx {
-        threadCount -= 1;
-        println!("threadcount!!{}", threadCount);
         let mut newOffsets: Vec<OffsetInfo> = Vec::new();
         let mut newSPerfects: Vec<u32> = Vec::new();
         let mut newSFacts: Vec<u32> = Vec::new();
@@ -117,23 +82,34 @@ fn main() {
         all_offsets.append(&mut newOffsets);
         all_sfacts.append(&mut newSFacts);
         sperfects.append(&mut newSPerfects);
+
+        let tx1 = tx.clone();
+        let point_all_sfacts = all_sfacts.clone();
+        let point_sperfects = sperfects.clone();
         
-        if threadCount == 0 {
+        if currentMaxVal+3000 >= max {
+            let former = currentMaxVal;
+            currentMaxVal = max;
+            println!("maxVal {}", currentMaxVal);
+            (thread::spawn(move || {
+                tx1.send(get_s_through(former, max, &point_all_sfacts, &point_sperfects));
+            }));
             break;
+        } else {
+            currentMaxVal += 3000;
+            println!("currmaxVal {}", currentMaxVal);
+            (thread::spawn(move || {
+                tx1.send(get_s_through(currentMaxVal-2999, currentMaxVal, &point_all_sfacts, &point_sperfects));
+            }));   
         }
-    }*/
-    
-    //println!("{:?}\n{:?}\n\n{:?}",  all_sfacts, all_offsets, sperfects);
+    }
     
     println!("{:?}", sperfects);
     
-    //working offset here!!
     let mut placeholder: Vec<i32> = Vec::new();
     let mut Offset_vec: Vec<Vec<i32>> = vec![placeholder; 15];
     for i in all_offsets.iter() {
-
         Offset_vec[(i.offset + 7) as usize].push((i.num) as i32);
-        //println!("vec: {:?}",  Offset_vec);
     }
 
     println!("\nDeficient (In S)");
@@ -230,4 +206,3 @@ fn contains(vec: &Vec<u32>,x: u32 ) -> bool {
     }
     return false
 }
- 
