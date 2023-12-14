@@ -49,6 +49,7 @@ fn main() {
     }
 
     let mut currentMaxVal: u32 = 20000;
+    let mut checkpoint: u32 = 1;
     let (tx, rx) = mpsc::channel();
 
     for thread in 1..9 {
@@ -59,13 +60,13 @@ fn main() {
             if currentMaxVal+3000 >= max {
                 let former = currentMaxVal;
                 currentMaxVal = max;
-                println!("maxVal {}", currentMaxVal);
+                //println!("maxVal {}", currentMaxVal);
                 (thread::spawn(move || {
                     tx1.send(get_s_through(former, max, &point_all_sfacts, &point_sperfects));
                 }));
             } else {
                 currentMaxVal += 3000;
-                println!("currmaxVal {}", currentMaxVal);
+                //println!("currmaxVal {}", currentMaxVal);
                 (thread::spawn(move || {
                     tx1.send(get_s_through(currentMaxVal-2999, currentMaxVal, &point_all_sfacts, &point_sperfects));
                 }));   
@@ -90,7 +91,7 @@ fn main() {
         if currentMaxVal+3000 >= max {
             let former = currentMaxVal;
             currentMaxVal = max;
-            println!("maxVal {}", currentMaxVal);
+            //println!("maxVal {}", currentMaxVal);
             (thread::spawn(move || {
                 tx1.send(get_s_through(former, max, &point_all_sfacts, &point_sperfects));
             }));
@@ -101,6 +102,27 @@ fn main() {
             (thread::spawn(move || {
                 tx1.send(get_s_through(currentMaxVal-2999, currentMaxVal, &point_all_sfacts, &point_sperfects));
             }));   
+        }
+
+        if currentMaxVal > 1000000*checkpoint {
+            checkpoint +=1;
+            println!("checkpoint {}", currentMaxVal);
+            let mut placeholder: Vec<i32> = Vec::new();
+            let mut Offset_vec: Vec<Vec<i32>> = vec![placeholder; 15];
+            for i in all_offsets.iter() {
+                Offset_vec[(i.offset + 7) as usize].push((i.num) as i32);
+            }
+
+            println!("\nDeficient (In S)");
+            for j in 0..7 {
+                println!("{} -> {:?}", (j as i32)-7, Offset_vec[j]);
+            }
+            println!("\nPerfect (In S)");
+            println!("{} -> {:?}", 0, Offset_vec[7]);
+            println!("\nAbundant (In S)");
+            for j in 8..15 {
+                println!("{} -> {:?}", (j as i32)-7, Offset_vec[j]);
+            }
         }
     }
     
@@ -124,9 +146,6 @@ fn main() {
     for j in 8..15 {
         println!("{} -> {:?}", (j as i32)-7, Offset_vec[j]);
     }
-
-
-    
 }
 
 //Job of get_s_through: return tuple off offset (iteration?) 
